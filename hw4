@@ -1,0 +1,386 @@
+#include <Gl/glut.h>;
+#include <stdio.h>
+static GLfloat spin = 0.0;
+static float speed = 0;//
+int translateY = 0;
+float mouseX = 0, mouseY = 0, scaleX = 1, scaleY = 1, scaleZ = 1;
+int mouseCurButton, curx, cury;//현재 마우스 클릭버튼 저장, 현재 마우스 x,y 좌표 저장
+GLfloat normalV[][3] = { {1,0,0},{-1,0,0}//+x ,-x , +y ,-y, +z, -z
+						,{0,1,0},{0,-1,0}
+						,{0,0,1},{0,0,-1} };
+GLfloat(*vp)[3];
+
+
+
+
+GLfloat bedVertices[][3] = {// 높이 1, 가로 3, 세로 5
+	{0,1,0},{0,1,-5},{3,1,-5},{3,1,0},
+	{0,0,0},{0,0,-5},{3,0,-5},{3,0,0},
+};
+GLfloat bedheadVertices[][3] = {//높이 1, 가로 3, 세로 0.1
+	{0,2,-4.9},{0,2,-5},{3,2,-5},{3,2,-4.9},
+	{0,1,-4.9},{0,1,-5},{3,1,-5},{3,1,-4.9}
+};
+GLfloat deskVertices[][3] = {//높이 0.1, 가로 5, 세로 2
+	{0,2,0},{0,2,-2},{5,2,-2},{5,2,0},
+	{0,1.9,0},{0,1.9,-2},{5,1.9,-2},{5,1.9,0}
+};
+GLfloat deskLegVertices[][3] = {
+	{0,1.9,0},{0,1.9,-0.1},{0.1,1.9,-0.1},{0.1,1.9,0},
+	{0,0,0},{0,0,-0.1},{0.1,0,-0.1},{0.1,0,0}
+};
+GLfloat felowVertices[][3] = {
+	{0,0.2,0},{0,0.2,-0.8},{2,0.2,-0.8},{2,0.2,0},
+	{0,0,0},{0,0,-0.8},{2,0,-0.8},{2,0,0},
+
+};
+void line()
+{
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(5, 5, -5);
+	glVertex3f(-5, 5, -5);
+	glVertex3f(-5, 5, 5);
+	glVertex3f(5, 5, 5);
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(5, 0, -5);
+	glVertex3f(-5, 0, -5);
+	glVertex3f(-5, 0, 5);
+	glVertex3f(5, 0, 5);
+	glEnd();
+	glBegin(GL_LINES);
+	glVertex3f(5, 5, -5);
+	glVertex3f(5, 0, -5);
+	glVertex3f(-5, 5, -5);
+	glVertex3f(-5, 0, -5);
+	glVertex3f(-5, 5, 5);
+	glVertex3f(-5, 0, 5);
+	glVertex3f(5, 5, 5);
+	glVertex3f(5, 0, 5);
+	glEnd();
+}
+void polygon(int a, int b, int c, int d)
+{
+	glBegin(GL_POLYGON);
+	glVertex3fv(vp[a]);
+	glVertex3fv(vp[b]);
+	glVertex3fv(vp[c]);
+	glVertex3fv(vp[d]);
+	glEnd();
+}
+
+void cube()
+{
+	glNormal3fv(normalV[2]);
+	polygon(0, 3, 2, 1);
+	glNormal3fv(normalV[4]);
+	polygon(0, 4, 7, 3);
+	glNormal3fv(normalV[0]);
+	polygon(2, 3, 7, 6);
+	glNormal3fv(normalV[5]);
+	polygon(2, 6, 5, 1);
+	glNormal3fv(normalV[1]);
+	polygon(0, 1, 5, 4);
+	glNormal3fv(normalV[3]);
+	polygon(4,5,6,7);
+}
+void drawbed()
+{
+	
+	glPushMatrix();
+	glTranslatef(-5, 0, 0);
+	
+	vp = bedheadVertices;
+	cube();
+	vp = bedVertices;
+	cube();
+	glPopMatrix();
+}
+void drawdesk1leg()
+{
+	vp = deskLegVertices;
+	glPushMatrix();
+	glTranslatef(-2, 0, -3);
+	cube();
+	glTranslatef(0, 0, -1.9);
+	cube();
+	glTranslatef(4.9, 0, 0);
+	cube();
+	glTranslatef(0, 0, 1.9);
+	cube();
+	glPopMatrix();
+}
+void drawdesk1()
+{
+	glPushMatrix();
+	glTranslatef(-2, 0, -3);
+	vp = deskVertices;
+	cube();
+	glPopMatrix();
+	drawdesk1leg();
+}
+void drawdesk2leg()
+{
+	vp = deskLegVertices;
+	glPushMatrix();
+	glTranslatef(3, 0, 0);
+	cube();
+	glTranslatef(0, 0, -4.9);
+	cube();
+	glTranslatef(1.9, 0, 0);
+	cube();
+	glTranslatef(0, 0, 4.9);
+	cube();
+	glPopMatrix();
+}
+void drawdesk2()
+{
+	glPushMatrix();
+	glTranslatef(5, 0, 0);
+	glRotatef(90, 0, 1, 0);
+	vp = deskVertices;
+	cube();
+	glPopMatrix();
+	drawdesk2leg();
+}
+void drawfelow()
+{
+	glPushMatrix();
+	glTranslatef(-4.5, 1, -4);
+	vp = felowVertices;
+	cube();
+	glPopMatrix();
+}
+
+void init()
+{
+	GLfloat diffuse0[] = { 1.0,1.0,1.0,1.0 };
+	GLfloat ambient0[] = { 1.0,0.0,0.0,1.0 };
+	GLfloat specular0[] = { 1.0,1.0,1.0,1.0 };
+	GLfloat light0_pos[] = { -5.0,5,0,0.0 };
+
+	GLfloat diffuse2[] = { 1.0,1.0,1.0,1.0 };
+	GLfloat ambient2[] = { 0.0,1.0,0.0,1.0 };
+	GLfloat specular2[] = { 1.0,1.0,1.0,1.0 };
+	GLfloat light2_pos[] = { 0,5,-5,1.0 };
+
+	GLfloat diffuse1[] = { 1.0,1.0,1.0,1.0 };
+	GLfloat ambient1[] = { 0.0,0.0,1.0,1.0 };
+	GLfloat specular1[] = { 1.0,0.0,0.0,1.0 };
+	GLfloat light1_pos[] = { 5.0,5.0,0.0,1.0 };
+
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient0);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse0);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specular0);
+
+	glEnable(GL_LIGHT2);
+	glLightfv(GL_LIGHT2, GL_POSITION, light2_pos);
+	glLightfv(GL_LIGHT2, GL_AMBIENT, ambient2);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, diffuse2);
+	glLightfv(GL_LIGHT2, GL_SPECULAR, specular2);
+
+	glEnable(GL_LIGHT1);
+	glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, ambient1);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse1);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, specular1);
+
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glEnable(GL_COLOR_MATERIAL);
+}
+void reshape(int w, int h)
+{
+	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-15.0, 15.0, -15.0, 15.0, +15.0, -15.0);
+	gluPerspective(30.0, 1, 15, 100);
+	gluLookAt(5, 5, 5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+void mydisplay()
+{
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glPushMatrix();//
+	glRotatef(spin, mouseX, mouseY, 0);//
+	glTranslatef(0, translateY, 0);
+	glScalef(scaleX, scaleY, scaleZ);
+
+	glBegin(GL_LINES);
+	glColor3f(1, 0, 0);
+	glVertex3f(1, 0, 0);
+	glVertex3f(-1, 0, 0);
+	glColor3f(0, 1, 0);
+	glVertex3f(0, 1, 0);
+	glVertex3f(0, -1, 0);
+	glColor3f(0, 0, 1);
+	glVertex3f(0, 0, 1);
+	glVertex3f(0, 0, -1);
+	glEnd();
+
+	glColor3f(0.5, 1, 0.5);
+	drawbed();
+	glColor3f(1, 1, 1);
+	drawdesk1();
+	drawdesk2();
+	glColor3f(0.2, 0.2, 0.2);
+	drawfelow();
+	
+	glPopMatrix();
+
+	glutSwapBuffers();
+
+}
+void spinDisplay(void)//
+{
+	spin = spin + speed;
+	if (spin > 360.0)
+		spin = spin - 360;
+	glutPostRedisplay();
+}
+void mouse(int button, int state, int x, int y)//
+{
+	switch (button)
+	{
+	case GLUT_LEFT_BUTTON:
+		if (state == GLUT_DOWN)
+		{
+			if (speed == 0)
+			{
+				if (x > 350)
+				{
+					mouseX=0 ,mouseY = 1;
+				}
+				else
+				{
+					mouseX = 1; mouseY = 0;
+				}
+				speed = 0.1;
+				glutIdleFunc(spinDisplay);
+			}
+			else
+			{
+				speed = 0;
+			}
+		}
+		
+		break;
+	case GLUT_MIDDLE_BUTTON:
+		if (state == GLUT_DOWN) {
+			if (x > 350)
+			{
+				translateY += 1;
+			}
+			else
+			{
+				translateY -= 1;
+			}
+		}
+		glutPostRedisplay();
+		break;
+	case GLUT_RIGHT_BUTTON:
+		if (state == GLUT_DOWN)
+		{
+			if (x > 350)
+			{
+				scaleX += 0.2; scaleY += 0.2; scaleZ += 0.2;
+			}
+			else
+			{
+				scaleX -= 0.2; scaleY -= 0.2; scaleZ -= 0.2;
+			}
+			glutPostRedisplay();
+		}
+		
+		break;
+	}
+}
+void keyboard(unsigned char key, int x, int y)
+{
+	{
+		switch (key)
+		{
+		case'0':
+			glDisable(GL_LIGHT0);
+			glDisable(GL_LIGHT1);
+			glDisable(GL_LIGHT2);
+			glutPostRedisplay();
+			break;
+		case'1':
+			glDisable(GL_LIGHT0);
+			glEnable(GL_LIGHT1);
+			glDisable(GL_LIGHT2);
+			glutPostRedisplay();
+			break;
+		case'2':
+			glEnable(GL_LIGHT0);
+			glDisable(GL_LIGHT1);
+			glEnable(GL_LIGHT2);
+			glutPostRedisplay();
+			break;
+		case '3':
+			glEnable(GL_LIGHT0);
+			glEnable(GL_LIGHT1);
+			glEnable(GL_LIGHT2);
+			glutPostRedisplay();
+			break;
+		}
+	}
+}
+
+/*void mouseStatus(int button, int state, int x, int y)
+{
+	mouseCurButton = button;
+	curx = x, cury = y;
+}
+void mouseMotion(int x, int y)
+{
+
+	if (mouseCurButton == GLUT_LEFT_BUTTON)
+	{
+		if (x > curx)
+		{
+			gluLookAt(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+			glutPostRedisplay();
+			curx = x;								//curx를 실시간의 x값으로 업데이트
+		}
+		else
+		{
+			glColor3f(1, 1.0, 1);
+			glutPostRedisplay();
+			curx = x;
+		}
+	}
+}
+*/
+
+int main(int argc, char** argv)
+{
+	glutInit(&argc, argv);
+
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitWindowSize(750, 750);
+	glutInitWindowPosition(100, 100);
+	glutCreateWindow("16011069 장지혁");
+
+	init();
+	glutDisplayFunc(mydisplay);
+	glutReshapeFunc(reshape);
+	
+
+	glutKeyboardFunc(keyboard);
+	glutMouseFunc(mouse);
+	glutMainLoop();
+}
+//glEND(); 로 도형그리기 구분시켜줌
