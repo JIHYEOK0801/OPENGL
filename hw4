@@ -34,31 +34,22 @@ GLfloat felowVertices[][3] = {
 	{0,0,0},{0,0,-0.8},{2,0,-0.8},{2,0,0},
 
 };
-void line()
-{
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(5, 5, -5);
-	glVertex3f(-5, 5, -5);
-	glVertex3f(-5, 5, 5);
-	glVertex3f(5, 5, 5);
-	glEnd();
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(5, 0, -5);
-	glVertex3f(-5, 0, -5);
-	glVertex3f(-5, 0, 5);
-	glVertex3f(5, 0, 5);
-	glEnd();
-	glBegin(GL_LINES);
-	glVertex3f(5, 5, -5);
-	glVertex3f(5, 0, -5);
-	glVertex3f(-5, 5, -5);
-	glVertex3f(-5, 0, -5);
-	glVertex3f(-5, 5, 5);
-	glVertex3f(-5, 0, 5);
-	glVertex3f(5, 5, 5);
-	glVertex3f(5, 0, 5);
-	glEnd();
-}
+GLfloat pianoVertices[][3] = {
+	{0,2,0 },{0,2,-4},{1.5,1.5,-4},{1.5,1.5,0},
+	{0,1.4,0 },{0,1.4,-4},{1.5,1.4,-4},{1.5,1.4,0}
+};
+GLfloat pianolegVertices[][3] = {
+	{0,1.4,0},{0,1.4,-4},{0.5,1.4,-4},{0.5,1.4,0},
+	{0,0,0},{0,0,-4},{0.5,0,-4},{0.5,0,0}
+};
+GLfloat computerlegVertices[][3] = {
+	{0,0.3,0},{0,0.3,-3},{1,0.3,-3},{1,0.3,0 },
+	{0,0,0},{0,0,-3},{1,0,-3},{1,0,0 }
+};
+GLfloat computerVertices[][3] = {
+	{0.5,1.3,-0.5},{0.5,1.3,-2.5 },{0.7,1.3,-2.5},{0.7,1.3,-0.5},
+	{0.5,0.3,-0.5},{0.5,0.3,-2.5 },{0.7,0.3,-2.5},{0.7,0.3,-0.5}
+};
 void polygon(int a, int b, int c, int d)
 {
 	glBegin(GL_POLYGON);
@@ -82,14 +73,14 @@ void cube()
 	glNormal3fv(normalV[1]);
 	polygon(0, 1, 5, 4);
 	glNormal3fv(normalV[3]);
-	polygon(4,5,6,7);
+	polygon(4, 5, 6, 7);
 }
 void drawbed()
 {
-	
+
 	glPushMatrix();
 	glTranslatef(-5, 0, 0);
-	
+
 	vp = bedheadVertices;
 	cube();
 	vp = bedVertices;
@@ -151,13 +142,34 @@ void drawfelow()
 	cube();
 	glPopMatrix();
 }
-
+void drawpiano()
+{
+	glPushMatrix();
+	glTranslatef(-5, 0, 4);
+	vp = pianoVertices;
+	cube();
+	vp = pianolegVertices;
+	cube();
+	glPopMatrix();
+}
+void drawcomputer()
+{
+	glPushMatrix();
+	glTranslatef(4, 2, -1);
+	vp = computerlegVertices;
+	glColor3f(0.7, 0.7, 0);
+	cube();
+	vp = computerVertices;
+	glColor3f(0.2, 0.2, 0.2);
+	cube();
+	glPopMatrix();
+}
 void init()
 {
 	GLfloat diffuse0[] = { 1.0,1.0,1.0,1.0 };
 	GLfloat ambient0[] = { 1.0,0.0,0.0,1.0 };
 	GLfloat specular0[] = { 1.0,1.0,1.0,1.0 };
-	GLfloat light0_pos[] = { -5.0,5,0,0.0 };
+	GLfloat light0_pos[] = { -5,5,2,0.0 };
 
 	GLfloat diffuse2[] = { 1.0,1.0,1.0,1.0 };
 	GLfloat ambient2[] = { 0.0,1.0,0.0,1.0 };
@@ -203,7 +215,7 @@ void reshape(int w, int h)
 	glLoadIdentity();
 	glOrtho(-15.0, 15.0, -15.0, 15.0, +15.0, -15.0);
 	gluPerspective(30.0, 1, 15, 100);
-	gluLookAt(5, 5, 5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	gluLookAt(0, 6, 6, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -236,7 +248,10 @@ void mydisplay()
 	drawdesk2();
 	glColor3f(0.2, 0.2, 0.2);
 	drawfelow();
-	
+	glColor3f(0.5, 0.5, 0.5);
+	drawpiano();
+	drawcomputer();
+
 	glPopMatrix();
 
 	glutSwapBuffers();
@@ -258,27 +273,31 @@ void mouse(int button, int state, int x, int y)//
 		{
 			if (speed == 0)
 			{
-				if (x > 350)
+				if (x > 500)
 				{
-					mouseX=0 ,mouseY = 1;
+					spin = 0;
+					mouseX = 0, mouseY = 1;
 				}
 				else
 				{
+					spin = 0;
 					mouseX = 1; mouseY = 0;
 				}
-				speed = 0.1;
+				speed = 0.5;
 				glutIdleFunc(spinDisplay);
 			}
 			else
 			{
 				speed = 0;
+				spin = 0;
+				glutPostRedisplay();
 			}
 		}
-		
+
 		break;
 	case GLUT_MIDDLE_BUTTON:
 		if (state == GLUT_DOWN) {
-			if (x > 350)
+			if (x > 500)
 			{
 				translateY += 1;
 			}
@@ -292,7 +311,7 @@ void mouse(int button, int state, int x, int y)//
 	case GLUT_RIGHT_BUTTON:
 		if (state == GLUT_DOWN)
 		{
-			if (x > 350)
+			if (x > 500)
 			{
 				scaleX += 0.2; scaleY += 0.2; scaleZ += 0.2;
 			}
@@ -302,7 +321,7 @@ void mouse(int button, int state, int x, int y)//
 			}
 			glutPostRedisplay();
 		}
-		
+
 		break;
 	}
 }
@@ -330,7 +349,7 @@ void keyboard(unsigned char key, int x, int y)
 			glutPostRedisplay();
 			break;
 		case '3':
-			glEnable(GL_LIGHT0);
+			glEnable(GL_LIGHT0);		
 			glEnable(GL_LIGHT1);
 			glEnable(GL_LIGHT2);
 			glutPostRedisplay();
@@ -339,48 +358,21 @@ void keyboard(unsigned char key, int x, int y)
 	}
 }
 
-/*void mouseStatus(int button, int state, int x, int y)
-{
-	mouseCurButton = button;
-	curx = x, cury = y;
-}
-void mouseMotion(int x, int y)
-{
-
-	if (mouseCurButton == GLUT_LEFT_BUTTON)
-	{
-		if (x > curx)
-		{
-			gluLookAt(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-			glutPostRedisplay();
-			curx = x;								//curx를 실시간의 x값으로 업데이트
-		}
-		else
-		{
-			glColor3f(1, 1.0, 1);
-			glutPostRedisplay();
-			curx = x;
-		}
-	}
-}
-*/
-
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-	glutInitWindowSize(750, 750);
+	glutInitWindowSize(1000, 1000);
 	glutInitWindowPosition(100, 100);
 	glutCreateWindow("16011069 장지혁");
 
 	init();
 	glutDisplayFunc(mydisplay);
 	glutReshapeFunc(reshape);
-	
+
 
 	glutKeyboardFunc(keyboard);
 	glutMouseFunc(mouse);
 	glutMainLoop();
 }
-//glEND(); 로 도형그리기 구분시켜줌
